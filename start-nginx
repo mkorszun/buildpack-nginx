@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e
+if [[ -z "${PORT}" ]]; then
+  echo "fatal: \$PORT not set" >&2
+  exit 1
+fi
+sed -i.orig "s/\$PORT/${PORT}/g" .nginx/conf/nginx.conf
+nginx
