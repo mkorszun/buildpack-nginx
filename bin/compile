@@ -17,6 +17,11 @@ indent() {
   sed -u 's/^/       /'
 }
 
+cd $build_dir
+
+TMP=$(mktemp -d --tmpdir=.)
+find . -mindepth 1 -maxdepth 1 -not -regex "./Procfile\|$TMP\|.nginx" -exec mv --target-directory="$TMP" '--' '{}' +
+mv "$TMP" static
 
 if [[ ! -d "${cache_dir}/nginx-${nginx_version}" ]]; then
   echo "-----> Downloading nginx ..."
@@ -53,12 +58,8 @@ make install >/dev/null | indent
 
 popd >/dev/null
 
-echo "-----> Preparing environment ..."
+mkdir -p "${build_dir}/.nginx/conf"
+[ -f ${build_dir}/.nginx/conf/nginx.conf ] || cp "${abspath}/../nginx.conf" "${build_dir}/.nginx/conf"
+cp --no-clobber -R "/srv/www/.nginx" "${build_dir}"
 
-mkdir -p "${build_dir}/.profile.d"
-echo "export PATH=\"\$HOME/.nginx/sbin:\$PATH\"" \
-  >"${build_dir}/.profile.d/nginx.sh"
-
-cp -R "/srv/www/.nginx" "${build_dir}"
-cp "${abspath}/../nginx.conf" "${build_dir}/.nginx/conf"
 cp "${abspath}/../start-nginx" "${build_dir}"
